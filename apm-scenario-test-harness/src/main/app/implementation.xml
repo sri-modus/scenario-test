@@ -22,6 +22,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
                 <logger level="INFO" doc:name="HTTP" message="MEssage sent to HTTP"/>
             </when>
             <when expression="#[message.outboundProperties.transportType=='JMS']">
+            <!-- test comment -->
                <!--  <jms:outbound-endpoint queue="sri_test" connector-ref="Active_MQ" doc:name="JMS">
                     <message-properties-transformer> 
                         <add-message-property key="Priority" value="9"/> 
