@@ -1,0 +1,115 @@
+#%RAML 1.0
+title: TriggerPMTest
+version: 1.0
+baseUri: http://localhost:8080/test
+/send:
+  post:
+    body: 
+      application/json:
+        example: |
+          {
+          "messageType":"XML",
+          "path":"/demo/supplier-inbox/XMLMessage/apessentialsFlow.txt",
+          "name":"Account Reconciliation",
+          "transportType":"HTTP",
+          "transportOptions":{
+            "connector":{
+            "pollingFrequency":1000,
+            "fileAge":500
+            },
+          "operation":{
+            "host":"localhost",
+            "port":"9420",
+            "path":"/api/send"
+              }
+            }
+          }
+        schema: |
+          {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "type": "object",
+            "properties": {
+              "messageType": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "transportType": {
+                "type": "string",
+                "enum": [
+                  "HTTP",
+                  "JMS",
+              "FTPS",
+              "MQ"
+                ]
+              },
+              "transportOptions": {
+                "type": "object",
+                "properties": {
+                  "connector": {
+                    "type": "object",
+                    "properties": {
+                      "pollingFrequency": {
+                        "type": "integer"
+                      },
+                      "fileAge": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "pollingFrequency",
+                      "fileAge"
+                    ]
+                  },
+                  "operation": {
+                    "type": "object",
+                    "properties": {
+                      "host": {
+                        "type": "string"
+                      },
+                      "port": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      },
+                      "outFileName": {
+                        "type": "string"
+                      },
+                      "queueName": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "connector",
+                  "operation"
+                ]
+              }
+            },
+            "required": [
+              "messageType",
+              "path",
+              "name",
+              "transportType",
+              "transportOptions"
+            ]
+          }
+    responses: 
+      200:
+        body: 
+          application/json:
+            example: |
+              {"message":"Message sent"}
+      401:
+        body: 
+          application/json:
+            example: |
+              {"message":"Bad Request"}
+        
+  

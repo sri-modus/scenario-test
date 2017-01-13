@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:ftps="http://www.mulesoft.org/schema/mule/ftps" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/ftps http://www.mulesoft.org/schema/mule/ftps/current/mule-ftps.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <jms:activemq-connector name="Active_MQ" username="admin" password="admin" brokerURL="tcp://localhost:61616" validateConnections="true" doc:name="Active MQ"/>
+        <sub-flow name="SendtoEndpoint">
+        <choice doc:name="Choice">
+            <when expression="#[message.outboundProperties.transportType=='FTPS']">
+                <ftps:write config-ref="FTPS__Basic_Configuration" filePath="#[message.outboundProperties.'transportPath']" fileName="#[message.outboundProperties.'outFileName']" doc:name="FTPS"/>
+                <logger message="MEssage sent to FTPS" level="INFO" doc:name="FTPS Log"/>
+            </when>
+            <when expression="#[message.outboundProperties.transportType=='HTTP']">
+                <async processingStrategy="Asynchronous_Processing_Strategy" doc:name="Async">
+                    <http:request config-ref="HTTP_Request_Configuration" path="#[message.outboundProperties.'transportPath']" method="POST" doc:name="HTTP"/>
+                    <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+                </async>
+                <logger level="INFO" doc:name="HTTP" message="MEssage sent to HTTP"/>
+            </when>
+            <when expression="#[message.outboundProperties.transportType=='JMS']">
+               <!--  <jms:outbound-endpoint queue="sri_test" connector-ref="Active_MQ" doc:name="JMS">
+                    <message-properties-transformer> 
+                        <add-message-property key="Priority" value="9"/> 
+                    </message-properties-transformer>
+                </jms:outbound-endpoint> -->
+                <jms:outbound-endpoint queue="#[message.outboundProperties.'queueName']" connector-ref="Active_MQ" doc:name="JMS"/>
+                <logger message="MEssage sent to JMS" level="INFO" doc:name="JMS log"/>
+            </when>
+            <when expression="#[message.outboundProperties.transportType=='MQ']">
+                <set-property propertyName="#['content-type']" value="#['application/text']" doc:name="Property"/>
+                <anypoint-mq:publish config-ref="Anypoint_MQ_Configuration" destination="#[message.outboundProperties.'queueName']" doc:name="Anypoint MQ">
+                    <anypoint-mq:message-builder>
+                        <anypoint-mq:properties>
+                            <anypoint-mq:property propertyName="originalFileName" value="purchaseorder_SRI1_large.xml"/>
+                        </anypoint-mq:properties>
+                    </anypoint-mq:message-builder>
+                </anypoint-mq:publish>
+                <logger message="MEssage sent to MQ" level="INFO" doc:name="MQ Log"/>
+            </when>
+            <otherwise>
+                <logger message="Message sent to MQ" level="INFO" doc:name="Logger"/>
+            </otherwise>
+        </choice>
+    </sub-flow>
+    <flow name="triggerpmtestFlow1" initialState="stopped">
+        <anypoint-mq:subscriber config-ref="Anypoint_MQ_Configuration" destination="PartnerQueue" acknowledgementMode="MANUAL" pollingTime="1000" doc:name="Anypoint MQ"/>
+        <logger message="message received from MQ" level="INFO" doc:name="Logger"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <anypoint-mq:ack config-ref="Anypoint_MQ_Configuration" doc:name="Anypoint MQ"/>
+    </flow>
+    <sub-flow name="getMessagefromFTP">
+        <component doc:name="Java">
+            <singleton-object class="triggerpmtest.GetFileFromFTPS">
+            <property value="${FTPHost}" key="server"/>
+			<property value="${password}" key="password"/>
+			<property value="${UN}" key="UN"/>
+			<property value="${port}" key="port"/>
+            </singleton-object>
+        </component>
+        <logger level="INFO" doc:name="Logger"/>
+    </sub-flow>
+</mule>

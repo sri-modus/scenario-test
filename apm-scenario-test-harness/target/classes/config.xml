@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns:ftps="http://www.mulesoft.org/schema/mule/ftps"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/ftps http://www.mulesoft.org/schema/mule/ftps/current/mule-ftps.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+<http:listener-config name="api-httpListenerConfig" host="0.0.0.0" port="8082" doc:name="HTTP Listener Configuration"/>
+    <apikit:config name="api-config" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
+    <context:property-placeholder location="pmtest.dev.properties"/>
+    <!-- <jms:activemq-connector name="Active_MQ" brokerURL="tcp://localhost:61616" validateConnections="true" persistentDelivery="true" doc:name="Active MQ"/> -->
+    <ftps:config name="FTPS__Basic_Configuration" host="dev.modusintegration.com" port="9900" username="demo" password="wh0#said3mo" disableCertificateValidation="true" doc:name="FTPS: Basic Configuration"/>
+    <anypoint-mq:config name="Anypoint_MQ_Configuration" acknowledgementMode="MANUAL" doc:name="Anypoint MQ Configuration">
+        <anypoint-mq:provider url="https://mq-us-east-1.anypoint.mulesoft.com/api/v1" clientId="437e82ef65964ee3852e528176791225" clientSecret="bdf69e277e3641cbBDD0368892B64CC3"/>
+    </anypoint-mq:config>
+    <http:request-config name="HTTP_Request_Configuration" host="#[message.outboundProperties.'host']" port="#[message.outboundProperties.'port']" doc:name="HTTP Request Configuration"/>
+    <asynchronous-processing-strategy name="Asynchronous_Processing_Strategy" maxThreads="4" minThreads="1" threadTTL="2" doc:name="Asynchronous Processing Strategy"/>
+    </mule>
