@@ -22,7 +22,7 @@ import org.apache.commons.net.ftp.FTPSClient;
 import org.mule.api.MuleEventContext;
 import org.mule.api.MuleMessage;
 import org.mule.api.lifecycle.Callable;
-import org.mule.tck.util.ftp.FtpClient;
+
 
 /***
  * This is an example program demonstrating how to use the FTPSClient class.
